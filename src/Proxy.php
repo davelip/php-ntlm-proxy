@@ -57,7 +57,7 @@ var_dump('prendo in cache');
     public function __destruct()
     {
         if ($this->socket) {
-            $this->socket->close();
+            socket_close($this->socket);
         }
     }
 
@@ -129,7 +129,7 @@ var_dump('prendo in cache');
     public function handleType3($ntlm_message)
     {
             $result = $this->authenticate($ntlm_message);
-#var_dump($result);
+var_dump($result);
         die();
             #except Exception, e:
                 #req.log_error('PYNTLM: Error when retrieving Type 3 message from server = %s' % str(e), apache.APLOG_CRIT)

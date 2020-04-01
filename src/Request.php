@@ -33,10 +33,11 @@ class Request
      */
     public static function withString($message)
     {
-        $lines = explode( "\n", $message);
+        //$lines = explode( "\n", $message);
 
+var_dump($message);
         // method and uri
-        list($type, $session_id, $param) = explode( ' ', array_shift($message));
+        list($type, $session_id, $param) = explode( ' ', $message);
 
         // create new request object
         return new static( $type, $session_id, $param );

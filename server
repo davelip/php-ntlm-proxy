@@ -29,13 +29,26 @@ if ( empty( $argv ) )
 // create a new server instance
 $server = new Server( '127.0.0.1', $port );
 
-// start listening
-$server->listen( function( Request $request ) 
-{
-	// print information that we recived the request
-	echo $request->type() . ' ' . $request->sessionId() . ' ' . $request->message() . "\n";
-	
-    $a = new Proxy();
+function addlog ($message="") {
+  error_log("[" . date("Y-m-d H:i:s") . "] " . $message . PHP_EOL, 3, "/tmp/server.log");
+}
 
-    return new Response( base64_encode($a->negotiate(base64_decode($request->message()))));
+addlog('parto');
+
+// start listening
+$server->listen( function( Request $request, Proxy $proxy ) 
+{
+addlog('arriva');
+	// print information that we recived the request
+	echo $request->type() . ' ' . $request->sessionId() . ' ' . $request->param() . "\n";
+
+	if ($request->type()=='type1') {
+    		$r = base64_encode($proxy->negotiate(base64_decode($request->param())));
+addlog('challenge ' . $r);
+    		return new Response($r);
+	} else {
+    		$r = base64_encode($proxy->handleType3(base64_decode($request->param())));
+addlog('authenticate ' . $r);
+    		return new Response($r);
+	}
 });

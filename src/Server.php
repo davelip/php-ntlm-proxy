@@ -77,6 +77,8 @@ class Server
      */
     public function listen( $callback )
     {
+	$cache = [];
+
         // check if the callback is valid
         if ( !is_callable( $callback ) )
         {
@@ -97,10 +99,19 @@ class Server
 
             // create new request instance with the clients header.
             // In the real world of course you cannot just fix the max size to 1024..
-            $request = Request::withString( socket_read( $client, 1024 ) );
+            $request = Request::withString( base64_decode(socket_read($client, 2048)) );
+	
+	    $proxy = null;
+	    if (isset($cache[$request->sessionId()]) && $request->type()=='type3') {
+            	echo "usato\n";
+		$proxy = $cache[$request->sessionId()];
+            } else {
+	    	echo "nuovo\n";
+		$proxy = new Proxy();
+	    }
 
             // execute the callback
-            $response = call_user_func( $callback, $request );
+            $response = call_user_func( $callback, $request, $proxy);
 
             // check if we really recived an Response object
             // if not return a 404 response object
@@ -117,6 +128,8 @@ class Server
 
             // close the connetion so we can accept new ones
             socket_close($client);
+
+	    $cache[$request->sessionId()] = $proxy;
         }
     }
 }
