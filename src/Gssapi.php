@@ -50,38 +50,28 @@ class Gssapi
     {
 #var_dump(__METHOD__);
         $length = ord(substr($berobj, 1, 1));
-//var_dump("ord " . ord(substr($berobj, 1, 1)) . "\n");
-//var_dump("length " . $length . "\n");
 
         # Short
         if ($length<128) {
-//var_dump("parselen esco con length " . $length . "\n");
             return [$length, 2];
         }
 
         # Long
         $nlength = $length & 0x7F;
-//var_dump("nlength " . $nlength . "\n");
 
         $length = 0;
 
         $generator = $this->xrange(2, 2+$nlength);
         foreach ($generator as $i) {
-//var_dump('i ' . $i . "\n");
-//var_dump("ord " . ord(substr($berobj, $i, 1)) . "\n");
             $length = $length*256 + ord(substr($berobj, $i, 1));
-//var_dump("length " . $length . "\n");
         }
 
-//var_dump("length " . $length . "\n");
-//var_dump("nlength " . $nlength . "\n");
         return [$length, (2 + $nlength)];
     }
 
     private function  parsetlv($dertype, $derobj, $partial=false)
     {
 #var_dump(__METHOD__);
-#var_dump(base64_encode($derobj));
         if (substr($derobj, 0, 1)!=$dertype) {
             throw new Exception(printf('BER element %s does not start with type 0x%s.', bin2hex($derobj), bin2hex($dertype)));
         }
@@ -89,9 +79,6 @@ class Gssapi
         $aOut = $this->parselen($derobj);
         $length = $aOut[0];
         $pstart = $aOut[1];
-
-#printf("length = %d,  pstart = %d, pstart+length = %d", $length, $pstart, ($pstart+$length));
-//var_dump($partial);
 
         if ($partial) {
             if (strlen($derobj)<$length+$pstart) {
@@ -103,7 +90,7 @@ class Gssapi
             throw new Exception(printf('BER payload %s is not %d bytes long (type %X).', bin2hex($derobj), $length, ord($derobj[0])));
         }
         $rv = substr($derobj, $pstart);
-#printf("parsetlv rv %s", base64_encode($rv));
+
         return $rv;
     }
 
@@ -164,27 +151,22 @@ class Gssapi
 
         # NegTokenInit (rfc4178)
         $mechlist = $this->makeseq($this->ntlm_oid);
-        #var_dump(base64_encode($mechlist)); # VERIFIED
+        
         $mechTypes = $this->maketlv("\xa0", $mechlist);
-        #var_dump(base64_encode($mechTypes)); # VERIFIED
+        
         $mechToken = $this->maketlv("\xa2", $this->makeoctstr($ntlm_token));
-        #var_dump(base64_encode($mechToken)); #VERIFIED
 
         # NegotiationToken (rfc4178)
         $negTokenInit = $this->makeseq($mechTypes . $mechToken ); # + mechListMIC)
-        #var_dump(base64_encode($negTokenInit));#VERIFIED
         $innerContextToken = $this->maketlv("\xa0", $negTokenInit);
-        #var_dump(base64_encode($innerContextToken));#VERIFIED
 
         # MechType + innerContextToken (rfc2743)
         $thisMech = "\x06\x06\x2b\x06\x01\x05\x05\x02"; # SPNEGO OID 1.3.6.1.5.5.2
-        #var_dump(base64_encode($thisMech));#VERIFIED
         $spnego = $thisMech . $innerContextToken;
-        #var_dump(base64_encode($spnego));#VERIFIED
 
         # InitialContextToken (rfc2743)
         $msg = $this->maketlv("\x60", $spnego);
-        #var_dump(base64_encode($msg));#VERIFIED
+
         return $msg;
     }
 
@@ -192,21 +174,13 @@ class Gssapi
     {
 #var_dump(__METHOD__);
         # Extract negTokenResp from NegotiationToken
-//var_dump(base64_encode($msg));
         $msg = $this->parsetlv("\xa1", $msg, false);
-//var_dump(base64_encode($msg));
         $spnego = $this->parseseq($msg);
-#var_dump("spnego");
-#var_dump(base64_encode($spnego));
 
         # Extract negState
         $aOut = $this->parsetlv("\xa0", $spnego, True);
         $negState = $aOut[0];
-#var_dump("negState");
-#var_dump(base64_encode($negState));
         $msg = $aOut[1];
-#var_dump("msg");
-#var_dump(base64_encode($msg));
         $status = $this->parseenum($negState);
 
         if ($status != 1) {

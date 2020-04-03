@@ -44,11 +44,9 @@ addlog('arriva');
 
 	if ($request->type()=='type1') {
     		$r = base64_encode($proxy->negotiate(base64_decode($request->param())));
-addlog('challenge ' . $r);
     		return new Response($r);
 	} else {
-    		$r = base64_encode($proxy->handleType3(base64_decode($request->param())));
-addlog('authenticate ' . $r);
+    		$r = base64_encode(($proxy->handleType3(base64_decode($request->param())) ? 'valid' : 'invalid'));
     		return new Response($r);
 	}
 });
