@@ -67,7 +67,7 @@ class Proxy
     {
         $data = substr($msg, 4);
         #                >H
-        $length = unpack('n', substr($msg, 2, 2))[1];
+        $length = @unpack('n', substr($msg, 2, 2))[1];
         if (substr($msg, 0, 2)!="\x00\x00" || $length!=strlen($data)) {
             throw new Exception(printf('Error while parsing Direct TCP transport Direct (%d, expected %d).', $length, strlen($data)));
         }
@@ -159,7 +159,7 @@ class Proxy
             exit;
         }
         $sent = socket_send($this->socket, $msg, strlen($msg), 0);
-        $data = socket_read($this->socket, 4);
+        $data = @socket_read($this->socket, 4);
         if ($data!==false) {
             $length = $this->getTransportLength($data);
             $data .= socket_read($this->socket, $length);

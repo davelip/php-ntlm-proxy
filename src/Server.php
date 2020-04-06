@@ -42,7 +42,7 @@ class Server
      * @param int               $port
      * @return void
      */
-    public function __construct( $host, $port, Logger $logger = null )
+    public function __construct($host, $port, Logger $logger = null)
     {
         $this->host = $host;
         $this->port = (int) $port;
@@ -63,7 +63,7 @@ class Server
      */
     protected function createSocket()
     {
-        $this->socket = socket_create( AF_INET, SOCK_STREAM, 0 );
+        $this->socket = socket_create(AF_INET, SOCK_STREAM, 0);
     }
 
     /**
@@ -76,17 +76,18 @@ class Server
     {
         if ( !socket_bind( $this->socket, $this->host, $this->port ) )
         {
-            throw new Exception( 'Could not bind: '.$this->host.':'.$this->port.' - '.socket_strerror( socket_last_error() ) );
+            throw new Exception('Could not bind: '.$this->host.':'.$this->port.' - '.socket_strerror(socket_last_error()));
         }
     }
 
     /**
      * Listen for requests
      *
-     * @param callable              $callback
+     * @param callable          $callback
+     * @param Logger 		$logger
      * @return void
      */
-    public function listen( $callback )
+    public function listen($callback, Logger $logger)
     {
         $cache = [];
 
@@ -128,7 +129,7 @@ class Server
 
             if ($proxy!=null) {
                 // execute the callback
-                $response = call_user_func( $callback, $request, $proxy);
+                $response = call_user_func( $callback, $request, $proxy, $logger);
 
                 // check if we really recived an Response object
                 // if not return a 404 response object

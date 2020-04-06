@@ -33,11 +33,14 @@ class Request
     {
         //$lines = explode( "\n", $message);
 
-        // method and uri
-        list($type, $session_id, $param) = explode(' ', $message);
+        $aOut = explode(' ', $message);
+
+	$type = isset($aOut[0]) ? $aOut[0] : null;
+	$session_id = isset($aOut[1]) ? $aOut[1] : null;
+	$param = isset($aOut[2]) ? $aOut[2] : null;
 
         // create new request object
-        return new static( $type, $session_id, $param );
+        return new static($type, $session_id, $param);
     }
 
     /**

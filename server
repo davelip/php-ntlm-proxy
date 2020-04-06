@@ -13,17 +13,25 @@ use davelip\NTLM\Proxy\Server;
 use davelip\NTLM\Proxy\Request;
 use davelip\NTLM\Proxy\Response;
 
+use Monolog\Logger; 
+
 require 'vendor/autoload.php';
 
+# environment configuration
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
-$logger = new Monolog\Logger('chanel-name');
+var_dump(getenv('LOG_PATH') . DIRECTORY_SEPARATOR . getenv('LOG_FILENAME'));
+var_dump((int)getenv('LOG_ROTATE_COUNT'));
+var_dump(getenv('LOG_LEVEL'));
 
+# Logger
+$logger = new Logger('chanel-name');
 $handler = new Monolog\Handler\RotatingFileHandler(
     getenv('LOG_PATH') . DIRECTORY_SEPARATOR . getenv('LOG_FILENAME')
-    , getenv('LOG_ROTATE_COUNT')
-    , getenv('LOG_LEVEL'));
+    , (int)getenv('LOG_ROTATE_COUNT')
+    , getenv('LOG_LEVEL')
+    );
 # '/' in date format is treated like '/' in directory path
 # so Y/m/d-filename will create path: eg. 2017/07/21-filename.log
 $handler->setFilenameFormat('{date}-{filename}', 'Y-m');
@@ -47,7 +55,7 @@ try {
     $logger->info('Server start', []);
 
     // start listening
-    $server->listen(function(Request $request, Proxy $proxy) 
+    $server->listen(function(Request $request, Proxy $proxy, Logger $logger) 
     {
         try {
             $logger->info('Server listen', []);
@@ -68,7 +76,7 @@ try {
         }
 
         return $response;
-    });
+    }, $logger);
 } catch (Exception $e) {
     $logger->error('Start up error', [$e->getMessage()]);
     echo "Errore: " . $e->getMessage();

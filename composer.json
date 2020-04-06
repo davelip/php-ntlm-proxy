@@ -2,7 +2,7 @@
     "name": "davelip/php-ntlm-proxy",
     "description": "NTLM proxy to Windows Domain Controller in pure PHP",
     "type": "project",
-    "keywords": "server, authentication, proxy, ntlm, domain controller",
+    "keywords": ["server", "authentication", "proxy", "ntlm", "domain controller"],
     "homepage": "https://github.com/davelip/php-ntlm-proxy",
     "time": "2020-04-04",
     "authors": [
