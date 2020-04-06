@@ -19,13 +19,13 @@ It's support only Domain Controller proxy.
 
 You can test the connection in two ways:
 
-netstat -plunt | grep `port`
+ # netstat -plunt | grep `port`
 If you see a row in the output your server is running
 
-telnet localhost `port`
-If you enter in interactive mode your server is running and you are communicating with him. Try to write something like `type1 123 AAAAA` and double Enter.
+ # telnet localhost `port`
+If you enter in interactive mode your server is running and you are communicating with him. Try to write something like `type1 123 AAAAA` and press Enter. You should get something like `Generic errorConnection closed by foreign host.`
 
-For a production environment i suggest to install a tool like supervisord or to run php-ntlm-proxy like a system service (see next paragraphs).
+For a production environment I suggest to install a tool like supervisord or to run php-ntlm-proxy like a system service (see next paragraphs).
 
 
 ### Supervisord
@@ -35,10 +35,13 @@ http://supervisord.org/
 Install it and configure your server.
 
 ```
-[program:tornado-8000]
-command=/path/to/php /path/to/server
-stderr_logfile=/var/log/supervisord/php-ntlm-proxy-stderr.log
-stdout_logfile=/var/log/supervisord/php-ntlm-proxy-stdout.log
+```
+[program:php-ntlm-proxy]
+command=/usr/bin/php server
+directory=/path/to/php-ntlm-proxy
+stderr_logfile=/var/log/supervisor/php-ntlm-proxy-stderr.log
+stdout_logfile=/var/log/supervisor/php-ntlm-proxy-stdout.log
+```
 ```
 
 ### Running like a system service

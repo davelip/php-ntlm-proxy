@@ -21,10 +21,6 @@ require 'vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
-var_dump(getenv('LOG_PATH') . DIRECTORY_SEPARATOR . getenv('LOG_FILENAME'));
-var_dump((int)getenv('LOG_ROTATE_COUNT'));
-var_dump(getenv('LOG_LEVEL'));
-
 # Logger
 $logger = new Logger('chanel-name');
 $handler = new Monolog\Handler\RotatingFileHandler(
