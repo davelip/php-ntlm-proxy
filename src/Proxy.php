@@ -1,9 +1,13 @@
 <?php namespace davelip\NTLM\Proxy;
 
+use davelip\NTLM\Proxy\Exception;
 use davelip\NTLM\Proxy\Gssapi;
+
+use Monolog\Logger;
 
 class Proxy
 {
+    private $logger;
     private $socket;
     private $gssapi;
     private $userId = 0;
@@ -23,9 +27,9 @@ class Proxy
     const CAP_STATUS32                    = 0x00000040;
     const CAP_EXTENDED_SECURITY           = 0x80000000;
 
-    const NTLMSSP_NEGOTIATE_UNICODE 	  = 0x00000001;
+    const NTLMSSP_NEGOTIATE_UNICODE       = 0x00000001;
 
-    public function __construct()
+    public function __construct(Logger $logger)
     {
         $this->session_id = session_id();
 
@@ -39,12 +43,13 @@ class Proxy
                 throw new Exception("Unable to create socket to PDC");
                 exit;
             }
-            $bRv = socket_connect($this->socket, "192.168.1.7", 445);
+            $bRv = socket_connect($this->socket, getenv('DC_IP'), getenv('DC_PORT'));
             if (!$bRv) {
-                throw new Exception("Unable to create stream to PDC");
+                throw new Exception(sprintf("Unable to create stream to PDC (%s:%s)", getenv('DC_IP'), getenv('DC_PORT')));
                 exit;
             }
             $timeout = array("sec"=>100,"usec"=>500000);
+
             socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, $timeout);
 
         }
@@ -114,32 +119,11 @@ class Proxy
 
     public function handleType3($ntlm_message)
     {
-	$result = false;
-	try {
-		$result = $this->authenticate($ntlm_message);
-	}
-	catch (Exception $e) {
-                #req.log_error('PYNTLM: Error when retrieving Type 3 message from server = %s' % str(e), apache.APLOG_CRIT)
-	}
+        $result = false;
 
-        if (!$result) {
-		#cache.remove(req.connection.id)
-		#req.log_error('PYNTLM: User %s/%s authentication for URI %s' % (#domain,user,req.unparsed_uri))
-		#return handle_unauthorized(req)
-	}
+        $result = $this->authenticate($ntlm_message);
 
-        #req.log_error('PYNTLM: User %s/%s has been authenticated to access URI %s' % (user,domain,req.unparsed_uri), apache.APLOG_NOTICE)
-        #set_remote_user(req, user, domain)
-        #result = check_authorization(req, user, proxy)
-        #cache.remove(req.connection.id)
-
-            #if not result:
-                #return apache.HTTP_FORBIDDEN
-
-            #req.connection.notes.add('NTLM_AUTHORIZED',req.user)
-            #return apache.OK
-
-	return $result;
+        return $result;
     }
 
     public function negotiate($data)

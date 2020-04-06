@@ -1,9 +1,24 @@
 {
-	"autoload":
-	{
-		"psr-4": 
-		{
-			"davelip\\NTLM\\Proxy\\": "src/"	
-		}
-	}
+    "name": "davelip/php-ntlm-proxy",
+    "description": "NTLM proxy to Windows Domain Controller in pure PHP",
+    "type": "project",
+    "keywords": "server, authentication, proxy, ntlm, domain controller",
+    "homepage": "https://github.com/davelip/php-ntlm-proxy",
+    "time": "2020-04-04",
+    "authors": [
+        {
+            "name": "David Lippi",
+            "email": "lippi.david@gmail.com",
+            "homepage": "https://www.linkedin.com/in/davidlippi/"
+        }
+     ],
+     "autoload": {
+          "psr-4": {
+               "davelip\\NTLM\\Proxy\\": "src/"	
+          }
+     },
+     "require": {
+          "vlucas/phpdotenv": "^4.1",
+          "monolog/monolog": "^2.0"
+     }
 }

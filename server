@@ -15,38 +15,61 @@ use davelip\NTLM\Proxy\Response;
 
 require 'vendor/autoload.php';
 
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+$logger = new Monolog\Logger('chanel-name');
+
+$handler = new Monolog\Handler\RotatingFileHandler(
+    getenv('LOG_PATH') . DIRECTORY_SEPARATOR . getenv('LOG_FILENAME')
+    , getenv('LOG_ROTATE_COUNT')
+    , getenv('LOG_LEVEL'));
+# '/' in date format is treated like '/' in directory path
+# so Y/m/d-filename will create path: eg. 2017/07/21-filename.log
+$handler->setFilenameFormat('{date}-{filename}', 'Y-m');
+$logger->pushHandler($handler);
+
+
 // we never need the first argument
-array_shift( $argv );
+array_shift($argv);
 
 // the next argument should be the port if not use 80
-if ( empty( $argv ) )
-{
-	$port = 8445;
+if (empty($argv)) {
+    $port = getenv('PORT');
 } else {
-	$port = array_shift( $argv );
+    $port = array_shift( $argv );
 }
 
 // create a new server instance
-$server = new Server( '127.0.0.1', $port );
+try {
+    $server = new Server('127.0.0.1', $port, $logger);
 
-function addlog ($message="") {
-  error_log("[" . date("Y-m-d H:i:s") . "] " . $message . PHP_EOL, 3, "/tmp/server.log");
+    $logger->info('Server start', []);
+
+    // start listening
+    $server->listen(function(Request $request, Proxy $proxy) 
+    {
+        try {
+            $logger->info('Server listen', []);
+            
+            // print information that we recived the request
+            $data = [$request->type(), $request->sessionId(), $request->param()];
+            $logger->info('Request data', $data);
+
+            if ($request->type()=='type1') {
+                $r = base64_encode($proxy->negotiate(base64_decode($request->param())));
+                $response = new Response($r);
+            } else {
+                $r = base64_encode(($proxy->handleType3(base64_decode($request->param())) ? 'valid' : 'invalid'));
+                $response = new Response($r);
+            }
+        } catch (Exception $e) {
+            $response = new Response('Generic error');
+        }
+
+        return $response;
+    });
+} catch (Exception $e) {
+    $logger->error('Start up error', [$e->getMessage()]);
+    echo "Errore: " . $e->getMessage();
 }
-
-addlog('parto');
-
-// start listening
-$server->listen( function( Request $request, Proxy $proxy ) 
-{
-addlog('arriva');
-	// print information that we recived the request
-	echo $request->type() . ' ' . $request->sessionId() . ' ' . $request->param() . "\n";
-
-	if ($request->type()=='type1') {
-    		$r = base64_encode($proxy->negotiate(base64_decode($request->param())));
-    		return new Response($r);
-	} else {
-    		$r = base64_encode(($proxy->handleType3(base64_decode($request->param())) ? 'valid' : 'invalid'));
-    		return new Response($r);
-	}
-});

@@ -1,7 +1,5 @@
 <?php namespace davelip\NTLM\Proxy;
 
-use davelip\NTLM\Proxy\Exception;
-
 class Request
 {
     /**
@@ -35,9 +33,8 @@ class Request
     {
         //$lines = explode( "\n", $message);
 
-var_dump($message);
         // method and uri
-        list($type, $session_id, $param) = explode( ' ', $message);
+        list($type, $session_id, $param) = explode(' ', $message);
 
         // create new request object
         return new static( $type, $session_id, $param );
